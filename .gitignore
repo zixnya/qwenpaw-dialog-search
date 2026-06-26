@@ -1,0 +1,7 @@
+*.db
+import_state.json
+import.log
+test_db.py
+extract_sgfas.py
+__pycache__/
+*.pyc

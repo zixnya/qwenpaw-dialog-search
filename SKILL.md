@@ -371,3 +371,61 @@ FTS5 全文索引，索引 `content_text`、`role`、`name` 字段。
 | 中文搜索不准确 | FTS5 默认分词将中文按单字索引，精确短语搜索效果好于单个字 |
 | 多工作区 | 自动扫描，每个工作区独立建表记录 |
 | 跨平台路径 | import.py 使用 pathlib.Path 或 os.path.join 处理路径分隔符 |
+
+---
+
+## Windows 兼容说明（v2 新增）
+
+> v1 在 Linux/macOS 上开发验证，v2 补充 Windows 全平台兼容。
+> 以下三条是 Windows 上跑必须注意的差异，原 Linux/macOS 流程不变。
+
+### ① 首次运行前的环境检查
+
+```powershell
+# Windows（PowerShell / cmd）
+python --version                  # 确保已安装 Python 3.8+
+pip list 2>nul | findstr sqlite3  # SQLite 已内置，无需安装
+```
+
+### ② 路径自动检测（无需设环境变量）
+
+v2 默认路径从 Linux 硬编码 `/root/.qwenpaw` 改为跨平台 `~/.qwenpaw`（通过 `os.path.expanduser("~")` 获取），Windows 下会自动解析为 `C:\Users\<用户名>\.qwenpaw`。三种方式任选：
+
+```powershell
+# 方式一：不设任何变量，直接跑（自动检测）
+python import.py
+
+# 方式二：设环境变量（覆盖默认）
+set QWENPAW_HOME=C:\Users\Administrator\.qwenpaw
+set QWENPAW_WORKSPACES=C:\Users\Administrator\.qwenpaw\workspaces
+set CHATDB_DIR=C:\Users\Administrator\.qwenpaw\chatdb
+python import.py
+
+# 方式三：注册为定期任务（每5分钟增量导入）
+$action = New-ScheduledTaskAction -Execute "python" -Argument "C:\Users\Administrator\.qwenpaw\chatdb\import.py"
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 5)
+Register-ScheduledTask -TaskName "QwenPaw ChatDB Import" -Action $action -Trigger $trigger -RunLevel Highest -Force
+```
+
+### ③ 编码注意事项
+
+Windows 下 cmd/PowerShell 默认使用 GBK 编码，对话文件为 UTF-8，有以下注意事项：
+
+- 如果控制台出现乱码，先运行 `chcp 65001` 切换到 UTF-8 代码页
+- 搜索脚本输出中的 emoji（🔍📊✅❌）在旧版 Windows 终端可能显示为方框，不影响功能
+- 所有文件读写操作均已指定 `encoding='utf-8'`，与 Linux/macOS 一致
+
+### ④ 脚本差异汇总
+
+与原版 v1 相比，v2 仅修改了以下内容（不影响 Linux/macOS）：
+
+| 文件 | 修改内容 | 原因 |
+|:----|:---------|:-----|
+| `import.py` | `QWENPAW_HOME` 默认值改为 `os.path.expanduser("~")` | Linux 硬编码路径在 Windows 无效 |
+| `import.py` | 所有 `open()` 加上 `encoding='utf-8'` | Windows 默认 GBK 导致 UTF-8 文件读取崩溃 |
+| `import.py` | 底部 `print()` 去掉 emoji，日志文件保留 emoji | Windows 控制台 GBK 无法输出 emoji |
+| `search.py` | 顶部添加 `sys.stdout.reconfigure(encoding='utf-8')` | 同上 |
+| `search.py` | `open(LOG_PATH)` 加上 `encoding='utf-8'` | 同上 |
+
+> 以上修改全部可追溯，无功能删减，无逻辑重构。
+
