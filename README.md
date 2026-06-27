@@ -1,5 +1,7 @@
 # 🐾 QwenPaw 历史对话全文搜索 Skill
 
+Created by 一懒众衫小 — 随便用，记得留个名就行
+
 将 QwenPaw 所有工作区的历史对话自动导入 **SQLite + FTS5** 全文索引，实现秒级检索。**零依赖、跨平台**，Linux / macOS / Windows 均可运行。
 
 ## 一分钟上手
