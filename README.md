@@ -1,3 +1,12 @@
+> ⚠️ **已停止维护 / DEPRECATED**
+>
+> 本项目仅适配 **QwenPaw 1.x**，现已过时。
+> QwenPaw 2.x 已内置 `recall_history`（历史对话全文检索）与 `memory_search`（记忆语义检索），无需再安装本 Skill。
+>
+> 仓库已归档，仅作历史参考。最后更新：2026-06-27
+
+---
+
 # 🐾 QwenPaw 历史对话全文搜索 Skill
 
 Created by 一懒众衫小 — 随便用，记得留个名就行
